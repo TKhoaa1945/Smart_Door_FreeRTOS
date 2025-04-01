@@ -7,7 +7,7 @@
 #include "driver/spi_master.h"
 #include "soc/gpio_struct.h"
 #include "driver/gpio.h"
-#include "MFRC522.h"
+#include "../header/MFRC522.h"
 
 
 

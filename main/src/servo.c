@@ -1,4 +1,4 @@
-#include "servo.h"
+#include "../header/servo.h"
 
 void setup_pwm(uint8_t SERVO_PIN) {
     // Configure the LEDC timer

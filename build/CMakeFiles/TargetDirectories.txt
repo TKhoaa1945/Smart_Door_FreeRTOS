@@ -11,7 +11,7 @@ D:/Documents/htn/Smart_Door/build/CMakeFiles/monitor.dir
 D:/Documents/htn/Smart_Door/build/CMakeFiles/flash.dir
 D:/Documents/htn/Smart_Door/build/CMakeFiles/encrypted-flash.dir
 D:/Documents/htn/Smart_Door/build/CMakeFiles/_project_elf_src.dir
-D:/Documents/htn/Smart_Door/build/CMakeFiles/stupid_door.elf.dir
+D:/Documents/htn/Smart_Door/build/CMakeFiles/Smart_Door.elf.dir
 D:/Documents/htn/Smart_Door/build/CMakeFiles/size.dir
 D:/Documents/htn/Smart_Door/build/CMakeFiles/size-files.dir
 D:/Documents/htn/Smart_Door/build/CMakeFiles/size-components.dir

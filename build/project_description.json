@@ -1,6 +1,6 @@
 {
     "version":            "1.1",
-    "project_name":       "stupid_door",
+    "project_name":       "Smart_Door",
     "project_version":    "1.0.1",
     "project_path":       "D:/Documents/htn/Smart_Door",
     "idf_path":           "C:/Users/haoha/esp/v5.2.3/esp-idf",
@@ -8,8 +8,8 @@
     "config_file":        "D:/Documents/htn/Smart_Door/sdkconfig",
     "config_defaults":    "",
     "bootloader_elf":     "D:/Documents/htn/Smart_Door/build/bootloader/bootloader.elf",
-    "app_elf":            "stupid_door.elf",
-    "app_bin":            "stupid_door.bin",
+    "app_elf":            "Smart_Door.elf",
+    "app_bin":            "Smart_Door.bin",
     "build_type":         "flash_app",
     "git_revision":       "v5.2.3",
     "target":             "esp32",
@@ -805,7 +805,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "D:/Documents/htn/Smart_Door/build/esp-idf/main/libmain.a",
-            "sources": [ "D:/Documents/htn/Smart_Door/main/smart_door.c", "D:/Documents/htn/Smart_Door/main/MFRC522.c", "D:/Documents/htn/Smart_Door/main/servo.c" ],
+            "sources": [ "D:/Documents/htn/Smart_Door/main/smart_door.c", "D:/Documents/htn/Smart_Door/main/src/MFRC522.c", "D:/Documents/htn/Smart_Door/main/src/servo.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {

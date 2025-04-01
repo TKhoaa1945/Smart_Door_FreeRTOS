@@ -160,7 +160,7 @@ CMAKE_INSTALL_MANDIR:PATH=
 CMAKE_INSTALL_OLDINCLUDEDIR:PATH=/usr/include
 
 //Install path prefix, prepended onto install directories.
-CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/stupid_door
+CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/Smart_Door
 
 //Run-time variable data (LOCALSTATEDIR/run)
 CMAKE_INSTALL_RUNSTATEDIR:PATH=
@@ -216,7 +216,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=stupid_door
+CMAKE_PROJECT_NAME:STATIC=Smart_Door
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION:STATIC=3.6.0
@@ -355,6 +355,15 @@ PYTHON:UNINITIALIZED=C:\Users\haoha\Espressif\python_env\idf5.2_py3.11_env\Scrip
 //No help, variable specified on the command line.
 PYTHON_DEPS_CHECKED:UNINITIALIZED=1
 
+//Value Computed by CMake
+Smart_Door_BINARY_DIR:STATIC=D:/Documents/htn/Smart_Door/build
+
+//Value Computed by CMake
+Smart_Door_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+Smart_Door_SOURCE_DIR:STATIC=D:/Documents/htn/Smart_Door
+
 //Allow unsafe builds. These builds ARE NOT SECURE.
 UNSAFE_BUILD:BOOL=OFF
 
@@ -387,15 +396,6 @@ mbedx509_LIB_DEPENDS:STATIC=general;__idf_cxx;general;__idf_newlib;general;__idf
 
 //Dependencies for the target
 p256m_LIB_DEPENDS:STATIC=general;__idf_cxx;general;__idf_newlib;general;__idf_freertos;general;__idf_esp_hw_support;general;__idf_heap;general;__idf_log;general;__idf_soc;general;__idf_hal;general;__idf_esp_rom;general;__idf_esp_common;general;__idf_esp_system;general;__idf_xtensa;
-
-//Value Computed by CMake
-stupid_door_BINARY_DIR:STATIC=D:/Documents/htn/Smart_Door/build
-
-//Value Computed by CMake
-stupid_door_IS_TOP_LEVEL:STATIC=ON
-
-//Value Computed by CMake
-stupid_door_SOURCE_DIR:STATIC=D:/Documents/htn/Smart_Door
 
 
 ########################
@@ -607,7 +607,7 @@ HAVE_TIME_T_SIZE:INTERNAL=TRUE
 //CHECK_TYPE_SIZE: sizeof(time_t)
 TIME_T_SIZE:INTERNAL=8
 //CMAKE_INSTALL_PREFIX during last run
-_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files (x86)/stupid_door
+_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files (x86)/Smart_Door
 _Python3_EXECUTABLE:INTERNAL=C:/Users/haoha/Espressif/python_env/idf5.2_py3.11_env/Scripts/python.exe
 //Python3 Properties
 _Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;11;2;32;;;C:\Users\haoha\Espressif\tools\idf-python\3.11.2\Lib;C:\Users\haoha\Espressif\tools\idf-python\3.11.2\Lib;C:\Users\haoha\Espressif\python_env\idf5.2_py3.11_env\Lib\site-packages;C:\Users\haoha\Espressif\python_env\idf5.2_py3.11_env\Lib\site-packages

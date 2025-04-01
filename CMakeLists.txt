@@ -5,4 +5,5 @@
 cmake_minimum_required(VERSION 3.16)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(stupid_door)
+#set(EXTRA_COMPONENT_DIRS components)  # Thêm thư mục chứa các thư viện
+project(Smart_Door)

@@ -219,6 +219,8 @@ enum PCD_Register {
 	uint8_t PCD_CommunicateWithPICC(spi_device_handle_t spi,uint8_t command, uint8_t waitIRq, uint8_t *sendData, uint8_t sendLen, uint8_t *backData, uint8_t *backLen, uint8_t *validBits, uint8_t rxAlign, bool checkCRC);
 	uint8_t PICC_Select(spi_device_handle_t spi,	Uid *uid, uint8_t validBits);
 
+	bool PICC_Servo_Controll(Uid *uid);
+
 	bool PCD_CalculateCRC(	spi_device_handle_t spi,uint8_t *data, uint8_t length,	uint8_t *result	 );
 
 	bool MIFARE_Read(spi_device_handle_t spi,	uint8_t blockAddr, 	///< MIFARE Classic: The block (0-0xff) number. MIFARE Ultralight: The first page to return data from.
