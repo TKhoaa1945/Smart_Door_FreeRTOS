@@ -1,18 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "driver/spi_master.h"
-#include "soc/gpio_struct.h"
-#include "driver/gpio.h"
-#include <src/MFRC522.c>
-#include "esp_err.h"
-#include <header/servo.h>
-#include "esp_wifi.h"
-#include "driver/i2c.h"
-#include "src/i2c_lcd.c"
+#include "header.h"
 
 #define servo_pin 13
 #define BUZZER_GPIO 27
@@ -23,132 +9,15 @@ char ssid[] = "P204 / 209";
 char pass[] = "30041975";
 
 volatile bool doorOpened = false;  // Cửa ban đầu đóng
-void setup_pwm(uint8_t SERVO_PIN) {
-    // Configure the LEDC timer
-    ledc_timer_config_t ledc_timer = {
-        .speed_mode       = SPEED_MODE,
-        .timer_num        = TIMER_NUM,
-        .duty_resolution  = DUTY_RESOLUTION,
-        .freq_hz          = FREQUENCY,
-        .clk_cfg          = CLK_CONFIG
-    };
-    ledc_timer_config(&ledc_timer);
+void setup_pwm(uint8_t SERVO_PIN);
+void buzzer_init();
+void set_servo_angle(int angle); 
+void servo_open_door();
+void servo_close_door();
+void buzzer_play(int frequency, int duration_ms);
+void rfid_Task(void  * pvParameters);
+void add_rfid(void * pvParameters);
 
-    // Configure the LEDC channel
-    ledc_channel_config_t ledc_channel = {
-        .speed_mode     = SPEED_MODE,
-        .channel        = CHANNEL,
-        .timer_sel      = TIMER_NUM,
-        .intr_type      = INTR_TYPE,
-        .gpio_num       = SERVO_PIN,
-        .duty           = 0, // Initial duty cycle
-        .hpoint         = 0
-    };
-    ledc_channel_config(&ledc_channel);
-}
-
-void buzzer_init()
-{
-    ledc_timer_config_t timer_conf = {
-        .duty_resolution = LEDC_TIMER_10_BIT, // Set resolution to 10 bits
-        .freq_hz = 2000,                      // Default frequency 2kHz
-        .speed_mode = LEDC_HIGH_SPEED_MODE,
-        .timer_num = LEDC_TIMER_0
-    };
-    ledc_timer_config(&timer_conf);
-
-    ledc_channel_config_t channel_conf = {
-        .gpio_num = BUZZER_GPIO,
-        .speed_mode = LEDC_HIGH_SPEED_MODE,
-        .channel = LEDC_CHANNEL_0,
-        .intr_type = LEDC_INTR_DISABLE,
-        .timer_sel = LEDC_TIMER_0,
-        .duty = 0,  // Start with 0 duty cycle (off)
-        .hpoint = 0
-    };
-    ledc_channel_config(&channel_conf);
-}
-
-void set_servo_angle(int angle) 
-{
-    // Convert angle to duty cycle
-    int pulsewidth = SERVO_MIN_PULSEWIDTH + ((SERVO_MAX_PULSEWIDTH - SERVO_MIN_PULSEWIDTH) * angle) / SERVO_MAX_DEGREE;
-    int duty = (pulsewidth * 8192) / 20000; // 8192 is 2^13 for 13-bit resolution
-    ledc_set_duty(SPEED_MODE, CHANNEL, duty);
-    ledc_update_duty(SPEED_MODE, CHANNEL);
-}
- 
-void servo_open_door() {
-    printf("Opening door...\n");
-    for (int angle =40 ; angle >= 0; angle--) {
-        set_servo_angle(angle);
-        vTaskDelay(pdMS_TO_TICKS(20)); 
-    }
-    doorOpened = true;
-    printf("Door opened.\n");
-}
-
-void servo_close_door() {
-    printf("Closing door...\n");
-    for (int angle = 0; angle <= 40; angle++) {
-        set_servo_angle(angle);
-        vTaskDelay(pdMS_TO_TICKS(20));
-    }
-    doorOpened = false;
-    printf("Door closed.\n");
-}
-// typedef struct {
-//     spi_device_handle_t spi;
-
-// }
-void buzzer_play(int frequency, int duration_ms)
-{
-    ledc_set_freq(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_0, frequency);
-    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, 512); // 50% duty cycle
-    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
-
-    vTaskDelay(pdMS_TO_TICKS(duration_ms));  // Play sound for duration
-
-    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, 0); // Turn off buzzer
-    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
-}
-
-void rfid_Task(void  * pvParameters ){
-    if(PICC_IsNewCardPresent(spi)){
-    PICC_ReadCardSerial(spi);	                   //READ CARD
-    PICC_DumpToSerial(spi,&uid);                  //DETAILS OF UID ALONG WITH SECTORS
-    if(PICC_Servo_Controll(&uid)){
-        lcd_clear();            
-        lcd_put_cursor(0, 0);                   // Set the cursor position to the first row, first column
-        lcd_send_string("GOOD!"); 
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        buzzer_play(1000, 1000);
-        printf("GOOD!\n");
-        if(!doorOpened) {
-            // Clear the LCD screen
-            servo_open_door();
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            servo_close_door();
-            vTaskDelay(pdMS_TO_TICKS(1000));
-        }
-    }else{
-        lcd_clear();            
-        lcd_put_cursor(0, 0);                   // Set the cursor position to the first row, first column
-        lcd_send_string("Stupid Door!");                // Clear the LCD screen
-        printf("\nStupid Door\n");
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        buzzer_play(1000, 3000);    
-        //printf(uid->uid)
-        //vTaskDelay(pdMS_TO_TICKS(1000));
-        
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        }
-    }else vTaskDelay(pdMS_TO_TICKS(1000));
-}
-
-void add_rfid(void * pvParameters){
-    
-}
 void app_main()
 {
     setup_pwm(servo_pin);
@@ -194,4 +63,123 @@ void app_main()
     {
         vTaskDelay(10/portTICK_PERIOD_MS);
      }
+}
+
+void rfid_Task(void  * pvParameters ){
+    if(PICC_IsNewCardPresent(spi)){
+    PICC_ReadCardSerial(spi);	                   //READ CARD
+    PICC_DumpToSerial(spi,&uid);                  //DETAILS OF UID ALONG WITH SECTORS
+    if(PICC_Servo_Controll(&uid)){
+        lcd_clear();            
+        lcd_put_cursor(0, 0);                   // Set the cursor position to the first row, first column
+        lcd_send_string("GOOD!"); 
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        buzzer_play(1000, 1000);
+        printf("GOOD!\n");
+        if(!doorOpened) {
+            // Clear the LCD screen
+            servo_open_door();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            servo_close_door();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }else{
+        lcd_clear();            
+        lcd_put_cursor(0, 0);                   // Set the cursor position to the first row, first column
+        lcd_send_string("Stupid Door!");                // Clear the LCD screen
+        printf("\nStupid Door\n");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        buzzer_play(1000, 3000);    
+        //printf(uid->uid)
+        //vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }else vTaskDelay(pdMS_TO_TICKS(1000));
+}
+
+void setup_pwm(uint8_t SERVO_PIN) {
+    // Configure the LEDC timer
+    ledc_timer_config_t ledc_timer = {
+        .speed_mode       = SPEED_MODE,
+        .timer_num        = TIMER_NUM,
+        .duty_resolution  = DUTY_RESOLUTION,
+        .freq_hz          = FREQUENCY,
+        .clk_cfg          = CLK_CONFIG
+    };
+    ledc_timer_config(&ledc_timer);
+
+    // Configure the LEDC channel
+    ledc_channel_config_t ledc_channel = {
+        .speed_mode     = SPEED_MODE,
+        .channel        = CHANNEL,
+        .timer_sel      = TIMER_NUM,
+        .intr_type      = INTR_TYPE,
+        .gpio_num       = SERVO_PIN,
+        .duty           = 0, // Initial duty cycle
+        .hpoint         = 0
+    };
+    ledc_channel_config(&ledc_channel);
+}
+
+void buzzer_init()
+{
+    ledc_timer_config_t timer_conf = {
+        .duty_resolution = LEDC_TIMER_10_BIT, // Set resolution to 10 bits
+        .freq_hz = 2000,                      // Default frequency 2kHz
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .timer_num = LEDC_TIMER_0
+    };
+    ledc_timer_config(&timer_conf);
+
+    ledc_channel_config_t channel_conf = {
+        .gpio_num = BUZZER_GPIO,
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .channel = LEDC_CHANNEL_0,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = LEDC_TIMER_0,
+        .duty = 0,  // Start with 0 duty cycle (off)
+        .hpoint = 0
+    };
+    ledc_channel_config(&channel_conf);
+}
+void set_servo_angle(int angle) 
+{
+    // Convert angle to duty cycle
+    int pulsewidth = SERVO_MIN_PULSEWIDTH + ((SERVO_MAX_PULSEWIDTH - SERVO_MIN_PULSEWIDTH) * angle) / SERVO_MAX_DEGREE;
+    int duty = (pulsewidth * 8192) / 20000; // 8192 is 2^13 for 13-bit resolution
+    ledc_set_duty(SPEED_MODE, CHANNEL, duty);
+    ledc_update_duty(SPEED_MODE, CHANNEL);
+}
+
+void servo_open_door(){
+    printf("Opening door...\n");
+    for (int angle =40 ; angle >= 0; angle--) {
+        set_servo_angle(angle);
+        vTaskDelay(pdMS_TO_TICKS(20)); 
+    }
+    doorOpened = true;
+    printf("Door opened.\n");
+}
+
+void servo_close_door() {
+    printf("Closing door...\n");
+    for (int angle = 0; angle <= 40; angle++) {
+        set_servo_angle(angle);
+        vTaskDelay(pdMS_TO_TICKS(20));
+    }
+    doorOpened = false;
+    printf("Door closed.\n");
+}
+
+void buzzer_play(int frequency, int duration_ms)
+{
+    ledc_set_freq(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_0, frequency);
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, 512); // 50% duty cycle
+    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+
+    vTaskDelay(pdMS_TO_TICKS(duration_ms));  // Play sound for duration
+
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, 0); // Turn off buzzer
+    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
 }

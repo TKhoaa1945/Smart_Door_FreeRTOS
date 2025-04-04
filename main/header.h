@@ -1,0 +1,15 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_system.h"
+#include "driver/spi_master.h"
+#include "soc/gpio_struct.h"
+#include "driver/gpio.h"
+#include <src/MFRC522.c>
+#include "esp_err.h"
+#include <header/servo.h>
+#include "esp_wifi.h"
+#include "driver/i2c.h"
+#include "src/i2c_lcd.c"
