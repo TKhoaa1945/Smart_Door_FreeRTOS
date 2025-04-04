@@ -10,9 +10,15 @@
 #include <src/MFRC522.c>
 #include "esp_err.h"
 #include <header/servo.h>
+#include "esp_wifi.h"
 
 #define servo_pin 13
+#define BUZZER_GPIO 27
 spi_device_handle_t spi;
+
+//config wifi
+char ssid[] = "P204 / 209";
+char pass[] = "30041975";
 
 volatile bool doorOpened = false;  // Cửa ban đầu đóng
 void setup_pwm(uint8_t SERVO_PIN) {
@@ -37,6 +43,28 @@ void setup_pwm(uint8_t SERVO_PIN) {
         .hpoint         = 0
     };
     ledc_channel_config(&ledc_channel);
+}
+
+void buzzer_init()
+{
+    ledc_timer_config_t timer_conf = {
+        .duty_resolution = LEDC_TIMER_10_BIT, // Set resolution to 10 bits
+        .freq_hz = 2000,                      // Default frequency 2kHz
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .timer_num = LEDC_TIMER_0
+    };
+    ledc_timer_config(&timer_conf);
+
+    ledc_channel_config_t channel_conf = {
+        .gpio_num = BUZZER_GPIO,
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .channel = LEDC_CHANNEL_0,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = LEDC_TIMER_0,
+        .duty = 0,  // Start with 0 duty cycle (off)
+        .hpoint = 0
+    };
+    ledc_channel_config(&channel_conf);
 }
 
 void set_servo_angle(int angle) 
@@ -71,12 +99,24 @@ void servo_close_door() {
 //     spi_device_handle_t spi;
 
 // }
+void buzzer_play(int frequency, int duration_ms)
+{
+    ledc_set_freq(LEDC_HIGH_SPEED_MODE, LEDC_TIMER_0, frequency);
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, 512); // 50% duty cycle
+    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+
+    vTaskDelay(pdMS_TO_TICKS(duration_ms));  // Play sound for duration
+
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, 0); // Turn off buzzer
+    ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+}
 
 void rfid_Task(void  * pvParameters ){
     if(PICC_IsNewCardPresent(spi)){
     PICC_ReadCardSerial(spi);	                   //READ CARD
     PICC_DumpToSerial(spi,&uid);                  //DETAILS OF UID ALONG WITH SECTORS
     if(PICC_Servo_Controll(&uid)){
+        buzzer_play(1000, 1000);
         printf("GOOD!\n");
         if(!doorOpened) {
             servo_open_door();
@@ -86,7 +126,7 @@ void rfid_Task(void  * pvParameters ){
         }
     }else{
         printf("\nStupid Door\n");
-            
+        buzzer_play(1000, 3000);    
         //printf(uid->uid)
         //vTaskDelay(pdMS_TO_TICKS(1000));
         
@@ -94,12 +134,14 @@ void rfid_Task(void  * pvParameters ){
         }
     }else vTaskDelay(pdMS_TO_TICKS(1000));
 }
+
 void add_rfid(void * pvParameters){
     
 }
 void app_main()
 {
     setup_pwm(servo_pin);
+    buzzer_init();
     esp_err_t ret;
     //spi_device_handle_t spi;
     //g_spi = spi;
