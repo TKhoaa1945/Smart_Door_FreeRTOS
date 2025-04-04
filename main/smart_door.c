@@ -11,6 +11,8 @@
 #include "esp_err.h"
 #include <header/servo.h>
 #include "esp_wifi.h"
+#include "driver/i2c.h"
+#include "src/i2c_lcd.c"
 
 #define servo_pin 13
 #define BUZZER_GPIO 27
@@ -116,16 +118,25 @@ void rfid_Task(void  * pvParameters ){
     PICC_ReadCardSerial(spi);	                   //READ CARD
     PICC_DumpToSerial(spi,&uid);                  //DETAILS OF UID ALONG WITH SECTORS
     if(PICC_Servo_Controll(&uid)){
+        lcd_clear();            
+        lcd_put_cursor(0, 0);                   // Set the cursor position to the first row, first column
+        lcd_send_string("GOOD!"); 
+        vTaskDelay(pdMS_TO_TICKS(1000));
         buzzer_play(1000, 1000);
         printf("GOOD!\n");
         if(!doorOpened) {
+            // Clear the LCD screen
             servo_open_door();
             vTaskDelay(pdMS_TO_TICKS(1000));
             servo_close_door();
             vTaskDelay(pdMS_TO_TICKS(1000));
         }
     }else{
+        lcd_clear();            
+        lcd_put_cursor(0, 0);                   // Set the cursor position to the first row, first column
+        lcd_send_string("Stupid Door!");                // Clear the LCD screen
         printf("\nStupid Door\n");
+        vTaskDelay(pdMS_TO_TICKS(1000));
         buzzer_play(1000, 3000);    
         //printf(uid->uid)
         //vTaskDelay(pdMS_TO_TICKS(1000));
@@ -142,6 +153,7 @@ void app_main()
 {
     setup_pwm(servo_pin);
     buzzer_init();
+    lcd_init();                             // Initialize the LCD
     esp_err_t ret;
     //spi_device_handle_t spi;
     //g_spi = spi;

@@ -805,7 +805,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "D:/Documents/htn/Smart_Door/build/esp-idf/main/libmain.a",
-            "sources": [ "D:/Documents/htn/Smart_Door/main/smart_door.c", "D:/Documents/htn/Smart_Door/main/src/MFRC522.c", "D:/Documents/htn/Smart_Door/main/src/servo.c" ],
+            "sources": [ "D:/Documents/htn/Smart_Door/main/smart_door.c", "D:/Documents/htn/Smart_Door/main/src/MFRC522.c", "D:/Documents/htn/Smart_Door/main/src/servo.c", "D:/Documents/htn/Smart_Door/main/src/i2c_lcd.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {
