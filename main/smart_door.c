@@ -82,7 +82,7 @@ void app_main()
 }
 
 void rfid_Task(void  * pvParameters ){
-    for(;;){
+    while(1){
         if(PICC_IsNewCardPresent(spi)){
             PICC_ReadCardSerial(spi);	                   //READ CARD
             PICC_DumpToSerial(spi,&uid);                  //DETAILS OF UID ALONG WITH SECTORS
