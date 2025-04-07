@@ -3,12 +3,21 @@
 #define servo_pin 13
 #define BUZZER_GPIO 27
 spi_device_handle_t spi;
+QueueHandle_t xQueue;
 
-//config wifi
-char ssid[] = "P204 / 209";
-char pass[] = "30041975";
+#define WIFI_SSID "P204 / 209"
+#define WIFI_PASS "30041975"
+#define BLYNK_TOKEN "g2eJeCiAldrUxSeYxjDNq5_xS7WyhKG9"
+#define BLYNK_SERVER CONFIG_BLYNK_SERVER
+
+typedef enum {
+    ACCESS_GRANTED,
+    ACCESS_DENIED
+} DoorCommand;
+
 
 volatile bool doorOpened = false;  // Cửa ban đầu đóng
+static void wifi_conn_init();
 void setup_pwm(uint8_t SERVO_PIN);
 void buzzer_init();
 void set_servo_angle(int angle); 
@@ -17,15 +26,16 @@ void servo_close_door();
 void buzzer_play(int frequency, int duration_ms);
 void rfid_Task(void  * pvParameters);
 void add_rfid(void * pvParameters);
+void lcd_task(void *pvParameters);
+void doorControlTask(void *pvParameters);
 
 void app_main()
 {
     setup_pwm(servo_pin);
     buzzer_init();
     lcd_init();                             // Initialize the LCD
+
     esp_err_t ret;
-    //spi_device_handle_t spi;
-    //g_spi = spi;
     spi_bus_config_t buscfg={
         .miso_io_num=PIN_NUM_MISO,
         .mosi_io_num=PIN_NUM_MOSI,
@@ -57,45 +67,62 @@ void app_main()
     gpio_config(&io_conf);
     set_servo_angle(40);
     doorOpened = false;
-    xTaskCreate(rfid_Task, "RFID Task", 4096, NULL, 2, NULL);
+    xQueue = xQueueCreate(5, sizeof(DoorCommand));
+    if (xQueue == NULL) {
+        printf("Queue creation failed!\n");
+        return;
+    }
+    xTaskCreatePinnedToCore(rfid_Task, "RFID Task", 4096, NULL, 5, NULL,0);
+    xTaskCreatePinnedToCore(doorControlTask, "Door Control Task", 4096, NULL, 5, NULL,1);
     //xTaskCreate(sensorTask, "sensor Task", 4096, NULL, 3, NULL);
-    while(1)
-    {
-        vTaskDelay(10/portTICK_PERIOD_MS);
-     }
+    // while(1)
+    // {
+    //     vTaskDelay(10/portTICK_PERIOD_MS);
+    //  }
 }
 
 void rfid_Task(void  * pvParameters ){
-    if(PICC_IsNewCardPresent(spi)){
-    PICC_ReadCardSerial(spi);	                   //READ CARD
-    PICC_DumpToSerial(spi,&uid);                  //DETAILS OF UID ALONG WITH SECTORS
-    if(PICC_Servo_Controll(&uid)){
-        lcd_clear();            
-        lcd_put_cursor(0, 0);                   // Set the cursor position to the first row, first column
-        lcd_send_string("GOOD!"); 
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        buzzer_play(1000, 1000);
-        printf("GOOD!\n");
-        if(!doorOpened) {
-            // Clear the LCD screen
-            servo_open_door();
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            servo_close_door();
-            vTaskDelay(pdMS_TO_TICKS(1000));
+    for(;;){
+        if(PICC_IsNewCardPresent(spi)){
+            PICC_ReadCardSerial(spi);	                   //READ CARD
+            PICC_DumpToSerial(spi,&uid);                  //DETAILS OF UID ALONG WITH SECTORS
+            DoorCommand cmd;
+            if(PICC_Servo_Controll(&uid)){
+                cmd = ACCESS_GRANTED;
+            }else{
+                cmd = ACCESS_DENIED;
+                }
+                xQueueSend(xQueue, &cmd, pdMS_TO_TICKS(100));  // Gửi lệnh vào queue
+                vTaskDelay(pdMS_TO_TICKS(1000));
+            }else vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
+
+void doorControlTask(void *pvParameters) {
+    DoorCommand cmd;
+    while (1) {
+        if (xQueueReceive(xQueue, &cmd, portMAX_DELAY)) {
+            if (cmd == ACCESS_GRANTED) {
+                lcd_clear();
+                lcd_put_cursor(0, 0);
+                lcd_send_string("GOOD!");
+                buzzer_play(1000, 1000);
+
+                if (!doorOpened) {
+                    servo_open_door();
+                    vTaskDelay(pdMS_TO_TICKS(1000));
+                    servo_close_door();
+                    vTaskDelay(pdMS_TO_TICKS(1000));
+                }
+            } else if (cmd == ACCESS_DENIED) {
+                lcd_clear();
+                lcd_put_cursor(0, 0);
+                lcd_send_string("Stupid Door!");
+                buzzer_play(1000, 3000);
+                vTaskDelay(pdMS_TO_TICKS(1000));
+            }
         }
-    }else{
-        lcd_clear();            
-        lcd_put_cursor(0, 0);                   // Set the cursor position to the first row, first column
-        lcd_send_string("Stupid Door!");                // Clear the LCD screen
-        printf("\nStupid Door\n");
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        buzzer_play(1000, 3000);    
-        //printf(uid->uid)
-        //vTaskDelay(pdMS_TO_TICKS(1000));
-        
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        }
-    }else vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
 
 void setup_pwm(uint8_t SERVO_PIN) {

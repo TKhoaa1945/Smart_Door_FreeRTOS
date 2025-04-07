@@ -1,0 +1,1 @@
+ninja: error: 'D:/Documents/htn/Smart_Door/main/src/blynk.c', needed by 'esp-idf/main/CMakeFiles/__idf_main.dir/src/blynk.c.obj', missing and no known rule to make it
