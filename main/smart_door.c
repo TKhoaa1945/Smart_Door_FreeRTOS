@@ -5,6 +5,16 @@
 spi_device_handle_t spi;
 QueueHandle_t xQueue;
 
+#define MAX_UIDS 20
+#define UID_LENGTH 4  // thường là 4 bytes
+
+uint8_t validUIDs[MAX_UIDS][UID_LENGTH];
+int uidCount = 0;
+
+bool addMode = false;
+bool deleteMode = false;
+
+
 #define WIFI_SSID "P204 / 209"
 #define WIFI_PASS "30041975"
 #define BLYNK_TOKEN "g2eJeCiAldrUxSeYxjDNq5_xS7WyhKG9"
@@ -28,6 +38,10 @@ void rfid_Task(void  * pvParameters);
 void add_rfid(void * pvParameters);
 void lcd_task(void *pvParameters);
 void doorControlTask(void *pvParameters);
+bool addUID(uint8_t *uid);
+bool removeUID(uint8_t *uid);
+bool isUIDValid(uint8_t *uid);
+
 
 void app_main()
 {
@@ -72,13 +86,13 @@ void app_main()
         printf("Queue creation failed!\n");
         return;
     }
-    xTaskCreatePinnedToCore(rfid_Task, "RFID Task", 4096, NULL, 5, NULL,0);
-    xTaskCreatePinnedToCore(doorControlTask, "Door Control Task", 4096, NULL, 5, NULL,1);
+    xTaskCreate(rfid_Task, "RFID Task", 4096, NULL, 5, NULL);
+    xTaskCreate(doorControlTask, "Door Control Task", 4096, NULL, 5, NULL);
     //xTaskCreate(sensorTask, "sensor Task", 4096, NULL, 3, NULL);
-    // while(1)
-    // {
-    //     vTaskDelay(10/portTICK_PERIOD_MS);
-    //  }
+    while(1)
+    {
+        vTaskDelay(10/portTICK_PERIOD_MS);
+     }
 }
 
 void rfid_Task(void  * pvParameters ){
@@ -94,7 +108,8 @@ void rfid_Task(void  * pvParameters ){
                 }
                 xQueueSend(xQueue, &cmd, pdMS_TO_TICKS(100));  // Gửi lệnh vào queue
                 vTaskDelay(pdMS_TO_TICKS(1000));
-            }else vTaskDelay(pdMS_TO_TICKS(500));
+        } else vTaskDelay(pdMS_TO_TICKS(100));
+            // }else vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
 
@@ -120,7 +135,7 @@ void doorControlTask(void *pvParameters) {
                 lcd_send_string("Stupid Door!");
                 buzzer_play(1000, 3000);
                 vTaskDelay(pdMS_TO_TICKS(1000));
-            }
+            } 
         }
     }
 }
@@ -209,4 +224,38 @@ void buzzer_play(int frequency, int duration_ms)
 
     ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0, 0); // Turn off buzzer
     ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0);
+}
+
+bool addUID(uint8_t *uid) {
+    if (uidCount >= MAX_UIDS) return false;
+
+    // Kiểm tra trùng
+    for (int i = 0; i < uidCount; i++) {
+        if (memcmp(validUIDs[i], uid, UID_LENGTH) == 0) return false; // đã có
+    }
+
+    memcpy(validUIDs[uidCount], uid, UID_LENGTH);
+    uidCount++;
+    return true;
+}
+
+bool removeUID(uint8_t *uid) {
+    for (int i = 0; i < uidCount; i++) {
+        if (memcmp(validUIDs[i], uid, UID_LENGTH) == 0) {
+            // Dời các phần tử sau về trước
+            for (int j = i; j < uidCount - 1; j++) {
+                memcpy(validUIDs[j], validUIDs[j + 1], UID_LENGTH);
+            }
+            uidCount--;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool isUIDValid(uint8_t *uid) {
+    for (int i = 0; i < uidCount; i++) {
+        if (memcmp(validUIDs[i], uid, UID_LENGTH) == 0) return true;
+    }
+    return false;
 }

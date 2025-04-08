@@ -220,6 +220,9 @@ enum PCD_Register {
 	uint8_t PICC_Select(spi_device_handle_t spi,	Uid *uid, uint8_t validBits);
 
 	bool PICC_Servo_Controll(Uid *uid);
+	// bool addUID(uint8_t *uid);
+    // bool removeUID(uint8_t *uid);
+	// bool isUIDValid(uint8_t *uid);
 
 	bool PCD_CalculateCRC(	spi_device_handle_t spi,uint8_t *data, uint8_t length,	uint8_t *result	 );
 

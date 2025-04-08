@@ -1,4 +1,4 @@
-idf_component_register(SRCS "smart_door.c" "src/MFRC522.c" "src/servo.c" "src/i2c_lcd.c"
+idf_component_register(SRCS "smart_door.c" "src/MFRC522.c" "src/servo.c" "src/i2c_lcd.c" "src/funny_buzzer.c"
                     INCLUDE_DIRS "."
                     
                     )

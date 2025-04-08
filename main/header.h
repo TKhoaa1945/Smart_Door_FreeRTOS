@@ -21,3 +21,4 @@
 #include "freertos/semphr.h"
 #include "freertos/timers.h"
 #include "freertos/event_groups.h"
+#include <src/funny_buzzer.c>

@@ -1291,4 +1291,37 @@ void GetStatusCodeName(uint8_t code	///< One of the StatusCode enums.
 	}
 } // End GetStatusCodeName()
 
+// bool addUID(uint8_t *uid) {
+//     if (uidCount >= MAX_UIDS) return false;
+
+//     // Kiểm tra trùng
+//     for (int i = 0; i < uidCount; i++) {
+//         if (memcmp(validUIDs[i], uid, UID_LENGTH) == 0) return false; // đã có
+//     }
+
+//     memcpy(validUIDs[uidCount], uid, UID_LENGTH);
+//     uidCount++;
+//     return true;
+// }
+
+// bool removeUID(uint8_t *uid) {
+//     for (int i = 0; i < uidCount; i++) {
+//         if (memcmp(validUIDs[i], uid, UID_LENGTH) == 0) {
+//             // Dời các phần tử sau về trước
+//             for (int j = i; j < uidCount - 1; j++) {
+//                 memcpy(validUIDs[j], validUIDs[j + 1], UID_LENGTH);
+//             }
+//             uidCount--;
+//             return true;
+//         }
+//     }
+//     return false;
+// }
+
+// bool isUIDValid(uint8_t *uid) {
+//     for (int i = 0; i < uidCount; i++) {
+//         if (memcmp(validUIDs[i], uid, UID_LENGTH) == 0) return true;
+//     }
+//     return false;
+// }
 
